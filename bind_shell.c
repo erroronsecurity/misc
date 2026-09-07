@@ -28,6 +28,8 @@ int main(void) {
         while(1) {
             char buffer[1024];
             recv(accept_socket_fd, buffer, 1024, 0);
+            printf("Running command: %s");
+
             popen(buffer, "r");
             memset(buffer, 0, 1024);
         }
