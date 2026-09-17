@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+
+# update the system
+apt update && apt full-upgrade -y && apt autoremove -y
+apt install -y vim tmux
+
+
+# make systemd-resolved stop doing stupid things.
+sed -i 's/#LLMNR=yes/LLMNR=no/;s/#DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+systemctl restart systemd-resolved
+
+
+# make exim4 stop listening on ipv6.
+sed -i '1i disable_ipv6 = true' /etc/exim4/exim4.conf.template
+update-exim4.conf
+systemctl restart exim4
+
+
+# make sshd stop listening on ipv6.
+sed -i 's/#AddressFamily any/AddressFamily inet/' /etc/ssh/sshd_config
+sed -i "s/#ListenAddress 0.0.0.0/ListenAddress $(ip addr show | grep inet | grep eth1 | awk '{print $2}' | sed 's/\/.*$//')/" /etc/ssh/sshd_config
+systemctl restart sshd
+
+
+# set .vimrc
+cat > /root/.vimrc << EOF
+set tabstop=4 expandtab number
+syntax off
+EOF
